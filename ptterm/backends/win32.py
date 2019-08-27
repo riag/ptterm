@@ -106,7 +106,11 @@ class Win32Terminal(Terminal):
         # self.pty.spawn(SpawnConfig(
         #     SpawnConfig.flag.auto_shutdown,
         #     cmdline=r'C:\windows\system32\cmd.exe'))
-        self.pyt.spawn(None, cmdline=self.command)
+        #self.pty.spawn(None, cmdline=self.command)
+        cmd = self.command
+        if isinstance(cmd, (list, tuple)):
+            cmd = ' '.join(cmd)
+        self.pty.spawn('', cmdline=cmd)
 
     def kill(self):
         " Terminate the process. "
@@ -117,7 +121,7 @@ class Win32Terminal(Terminal):
         Return the name for this process, or `None` when unknown.
         """ 
         p = psutil.Process(self.pty.pid)
-        return p.name
+        return p.name()
 
     def get_cwd(self):
         p = psutil.Process(self.pty.pid)
