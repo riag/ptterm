@@ -23,7 +23,7 @@ __all__ = (
 def create_terminal(command, before_exec_func):
     if is_windows():
         from .backends.win32 import Win32Terminal
-        return Win32Terminal()
+        return Win32Terminal(command)
     else:
         from .backends.posix import PosixTerminal
         return PosixTerminal.from_command(command, before_exec_func=before_exec_func)

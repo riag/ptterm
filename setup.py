@@ -15,7 +15,8 @@ requirements = [
 
 # Install yawinpty on Windows only.
 if sys.platform.startswith('win'):
-    requirements.append('yawinpty')
+    requirements.append('pywinpty')
+    requirements.append('psutil')
 
 
 setup(

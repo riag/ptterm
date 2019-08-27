@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 from prompt_toolkit.eventloop import get_event_loop
 from prompt_toolkit.eventloop.future import Future
 
-from yawinpty import Pty, SpawnConfig
+import winpty
+import winpty.cywinpty
+from winpty.cywinpty import Agent
+import psutil
 
 import abc
 import os
@@ -17,16 +20,29 @@ __all__ = [
     'Win32Terminal',
 ]
 
+class Pty(Agent):
+    def __init__(self, cols, rows):
+        Agent.__init__(self, cols, rows, True)
+
+    def conin_name(self):
+        return self.conin_pipe_name
+
+    def conout_name(self):
+        return self.conout_pipe_name
+
+    def close(self):
+        pass
 
 class Win32Terminal(Terminal):
     """
     Terminal backend for Windows, on top of winpty.
     """
-    def __init__(self):
-        self.pty = Pty()
+    def __init__(self, command):
+        self.pty = Pty(120, 24)
         self.ready_f = Future()
         self._input_ready_callbacks = []
         self.loop = get_event_loop()
+        self.command = command
 
         # Open input/output pipes.
         def received_data(data):
@@ -87,9 +103,10 @@ class Win32Terminal(Terminal):
         """
         Start the terminal process.
         """
-        self.pty.spawn(SpawnConfig(
-            SpawnConfig.flag.auto_shutdown,
-            cmdline=r'C:\windows\system32\cmd.exe'))
+        # self.pty.spawn(SpawnConfig(
+        #     SpawnConfig.flag.auto_shutdown,
+        #     cmdline=r'C:\windows\system32\cmd.exe'))
+        self.pyt.spawn(None, cmdline=self.command)
 
     def kill(self):
         " Terminate the process. "
@@ -99,7 +116,9 @@ class Win32Terminal(Terminal):
         """
         Return the name for this process, or `None` when unknown.
         """ 
-        return 'cmd.exe'
+        p = psutil.Process(self.pty.pid)
+        return p.name
 
     def get_cwd(self):
-        return
+        p = psutil.Process(self.pty.pid)
+        return p.cwd()
